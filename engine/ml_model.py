@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATA_PATH = BASE_DIR / "data" / "TestIndianWhole_cleaned.csv"
+DATA_PATH = BASE_DIR / "data" / "TestIndianWhole_Cleaned.csv"
 
 df = pd.read_csv(DATA_PATH)
 
