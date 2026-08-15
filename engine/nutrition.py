@@ -13,7 +13,7 @@ from difflib import get_close_matches, SequenceMatcher
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATA_PATH = BASE_DIR / "data" / "TestIndianWhole_cleaned.csv"
+DATA_PATH = BASE_DIR / "data" / "TestIndianWhole_Cleaned.csv"
 
 food = pd.read_csv(DATA_PATH)
 
