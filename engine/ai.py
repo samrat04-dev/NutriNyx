@@ -55,7 +55,6 @@ def generate_ai_recommendation(prompt):
             ],
             temperature=0.4,
             max_tokens=800
-            reasoning_effort="low"
         )
 
         return response.choices[0].message.content
