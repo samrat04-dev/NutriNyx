@@ -5,11 +5,41 @@ from engine import nutrition
 
 def show_nutrition_report():
     # =========================
-    # GET LATEST ANALYSIS
+    # DAILY TOTALS FROM MEAL HISTORY
+    # Sums every meal logged so far instead of only
+    # showing whichever meal was analyzed most recently.
     # =========================
 
-    nutrition = st.session_state.get("nutrition")
-    score_result = st.session_state.get("score_result")
+    meal_history = st.session_state.get("meal_history", [])
+
+    if meal_history:
+
+        nutrition = {
+            "Calories": sum(m["nutrition"]["Calories"] for m in meal_history),
+            "Protein": sum(m["nutrition"]["Protein"] for m in meal_history),
+            "Carbs": sum(m["nutrition"]["Carbs"] for m in meal_history),
+            "Fat": sum(m["nutrition"]["Fat"] for m in meal_history),
+        }
+
+        avg_score = round(
+            sum(m["score"] for m in meal_history) / len(meal_history)
+        )
+
+        if avg_score >= 90:
+            avg_rating = "Excellent"
+        elif avg_score >= 75:
+            avg_rating = "Good"
+        elif avg_score >= 60:
+            avg_rating = "Average"
+        else:
+            avg_rating = "Needs Improvement"
+
+    else:
+
+        nutrition = None
+        avg_score = None
+        avg_rating = None
+
     ai_response = st.session_state.get("ai_response")
     analyzed_food = st.session_state.get("analyzed_food")
     
@@ -141,15 +171,13 @@ and improve your health.
 
     st.subheader("💙 Overall Health Score")
 
-    if score_result:
+    if avg_score is not None:
 
-        score = score_result["score"]
-
-        st.progress(score / 100)
+        st.progress(avg_score / 100)
 
         st.success(
-            f"Your current nutrition health score is {score}/100 — "
-            f"{score_result['rating']}."
+            f"Your average nutrition health score today is "
+            f"{avg_score}/100 — {avg_rating}."
         )
 
     else:
@@ -203,7 +231,7 @@ and improve your health.
                         Protein
                     </div>
                     <div class="report-label">
-                        Analyzed meal
+                        Today's total
                     </div>
                 </div>
                 """,
@@ -222,7 +250,7 @@ and improve your health.
                         Carbohydrates
                     </div>
                     <div class="report-label">
-                        Analyzed meal
+                        Today's total
                     </div>
                 </div>
                 """,
@@ -241,7 +269,7 @@ and improve your health.
                         Fat
                     </div>
                     <div class="report-label">
-                        Analyzed meal
+                        Today's total
                     </div>
                 </div>
                 """,
@@ -261,8 +289,6 @@ and improve your health.
     # =========================
 
     st.subheader("🕐 Meal History")
-
-    meal_history = st.session_state.get("meal_history", [])
 
     if meal_history:
 
@@ -362,6 +388,8 @@ and improve your health.
     # =========================
 
     st.subheader("🤖️ NutriNyx AI Summary")
+
+    st.caption("Based on your most recently analyzed meal.")
 
     if ai_response:
 
