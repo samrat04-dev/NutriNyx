@@ -1,4 +1,4 @@
-Food_ID,Food_Name,Alias,Category,Meal_Type,Serving_Size,Calories_kcal,Protein_g,Carbs_g,Fat_g,Fiber_g,Sugar_g,Sodium_mg,Veg_NonVeg,Health_Rating,WeightLoss,MuscleGain,WeightGain,HealthyLifestyle
+Food_ID,Food_Name,Alias,Category,Meal_Type,Serving_Size,Calories_kcal,Protein_g,Carbs_g,Fat_g,Fiber_g,Sugar_g,Sodium_mg,Veg_NonVeg,Health_Rating,WeightLoss,MuscleGain,WeightGain,Balanced
 1,Poha,"Flattened Rice, Chivda",Breakfast,Breakfast,1 Plate (200g),250,6.2,45.0,5.5,3.5,3.0,420,Veg,B,Yes,No,Moderate,Yes
 2,Kanda Poha,Onion Poha,Breakfast,Breakfast,1 Plate (200g),260,6.5,46.0,6.0,3.5,3.0,430,Veg,B,Yes,No,Moderate,Yes
 3,Batata Poha,Potato Poha,Breakfast,Breakfast,1 Plate (220g),290,5.5,50.0,8.0,4.0,4.0,470,Veg,C,Moderate,No,Yes,Moderate
