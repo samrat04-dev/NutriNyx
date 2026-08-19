@@ -200,8 +200,6 @@ def recommend(nutrition, goal):
     # AI PROMPT
 
     ai_prompt = f"""
-You are an experienced nutritionist.
-
 Health Goal:
 {goal}
 
@@ -223,17 +221,6 @@ ML Confidence:
 
 Detected Issues:
 {', '.join(issues) if issues else 'None'}
-
-Give:
-
-1. A short health summary.
-2. Three personalized suggestions.
-3. Explain the ML prediction in simple language.
-4. Keep the response below 120 words.
-5. Do not change the calculated nutrition values.
-6. Be encouraging and practical.
-"""
-
 
     # RETURN RESULTS
 
