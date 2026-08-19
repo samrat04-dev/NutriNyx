@@ -221,6 +221,9 @@ ML Confidence:
 
 Detected Issues:
 {', '.join(issues) if issues else 'None'}
+
+Give:
+Explain the ML prediction above in simple, easy-to-understand language.
 """
     # RETURN RESULTS
 
