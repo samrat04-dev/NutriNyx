@@ -1,5 +1,23 @@
 import streamlit as st
 
+from engine.ml_model import train_models
+
+
+@st.cache_data
+def get_model_accuracy():
+    """
+    Trains the models once and remembers the result, so we
+    don't retrain every single time this page is opened.
+    Returns each goal's accuracy as a whole-number percentage.
+    """
+
+    results = train_models()
+
+    return {
+        goal: round(result["accuracy"] * 100, 1)
+        for goal, result in results.items()
+    }
+
 
 def show_settings():
 
@@ -132,20 +150,28 @@ Keep your basic information updated for personalized nutrition guidance.
             unsafe_allow_html=True
         )
 
+        # Give every field a starting value the first time
+        # this page loads, so widgets below can rely on the
+        # key= mechanism to remember whatever the user enters.
+        st.session_state.setdefault("user_name", "User")
+        st.session_state.setdefault("user_age", 17)
+        st.session_state.setdefault("user_height", 153)
+        st.session_state.setdefault("user_weight", 45)
+
         col1, col2 = st.columns(2)
 
         with col1:
 
             name = st.text_input(
                 "Name",
-                "User"
+                key="user_name"
             )
 
             age = st.number_input(
                 "Age",
                 min_value=10,
                 max_value=100,
-                value=17
+                key="user_age"
             )
 
         with col2:
@@ -154,14 +180,14 @@ Keep your basic information updated for personalized nutrition guidance.
                 "Height (cm)",
                 min_value=50,
                 max_value=250,
-                value=153
+                key="user_height"
             )
 
             weight = st.number_input(
                 "Weight (kg)",
                 min_value=20,
                 max_value=300,
-                value=45
+                key="user_weight"
             )
 
 
@@ -173,30 +199,46 @@ Keep your basic information updated for personalized nutrition guidance.
 
         st.subheader("🎯 Health Goal")
 
+        st.caption(
+            "This is the single goal used everywhere in NutriNyx — "
+            "Food Analyzer and AI Recommendations both read it from here."
+        )
+
+        st.session_state.setdefault("user_goal", "Healthy Lifestyle")
+
         goal = st.selectbox(
             "Choose your goal",
             [
-                "Muscle Gain",
+                "Healthy Lifestyle",
                 "Weight Loss",
-                "Maintain Health",
-                "Improve Fitness"
-            ]
+                "Weight Gain",
+                "Muscle Gain",
+                "Diabetic Friendly"
+            ],
+            key="user_goal"
         )
 
         st.divider()
 
         st.subheader("🔔 Preferences")
 
+        st.session_state.setdefault("pref_notifications", False)
+        st.session_state.setdefault("pref_reports", False)
+        st.session_state.setdefault("pref_ai_suggestions", False)
+
         notifications = st.checkbox(
-            "Nutrition reminders"
+            "Nutrition reminders",
+            key="pref_notifications"
         )
 
         reports = st.checkbox(
-            "Weekly nutrition reports"
+            "Weekly nutrition reports",
+            key="pref_reports"
         )
 
         ai = st.checkbox(
-            "AI suggestions"
+            "AI suggestions",
+            key="pref_ai_suggestions"
         )
 
 
@@ -224,6 +266,21 @@ personalized nutrition guidance.
             """,
             unsafe_allow_html=True
         )
+
+        st.write("")
+
+        st.subheader("🧠 Model Performance")
+
+        st.caption(
+            "Accuracy of our Decision Tree model on test data, "
+            "for each health goal."
+        )
+
+        for goal, accuracy in get_model_accuracy().items():
+
+            st.write(f"**{goal}** — {accuracy}% accurate")
+
+            st.progress(accuracy / 100)
 
 
     # =========================

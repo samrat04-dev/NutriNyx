@@ -2,8 +2,17 @@
 
 from engine.ml_model import predict_goal
 
+# Same idea as scorer.py: a breakfast or snack shouldn't be
+# judged against a full lunch/dinner calorie bar.
+MEAL_TYPE_FACTOR = {
+    "Breakfast": 0.6,
+    "Lunch": 1.0,
+    "Dinner": 1.0,
+    "Snack": 0.3,
+}
 
-def recommend(nutrition, goal):
+
+def recommend(nutrition, goal, meal_type="Lunch"):
 
     recommendations = []
     issues = []
@@ -15,6 +24,8 @@ def recommend(nutrition, goal):
     fiber = nutrition["Fiber"]
     sugar = nutrition["Sugar"]
     sodium = nutrition["Sodium"]
+
+    factor = MEAL_TYPE_FACTOR.get(meal_type, 1.0)
 
 
     # ML PREDICTION
@@ -31,7 +42,7 @@ def recommend(nutrition, goal):
 
     if goal == "Weight Loss":
 
-        if calories > 700:
+        if calories > 700 * factor:
             issues.append("High Calories")
             recommendations.append(
                 "Reduce overall calorie intake."
@@ -64,7 +75,7 @@ def recommend(nutrition, goal):
 
     elif goal == "Weight Gain":
 
-        if calories < 700:
+        if calories < 700 * factor:
             issues.append("Low Calories")
             recommendations.append(
                 "Increase healthy calorie intake."
@@ -95,7 +106,7 @@ def recommend(nutrition, goal):
                 "Add paneer, eggs, chicken or soy chunks."
             )
 
-        if calories < 600:
+        if calories < 600 * factor:
             issues.append("Low Calories")
             recommendations.append(
                 "Increase calorie intake slightly."
@@ -135,9 +146,9 @@ def recommend(nutrition, goal):
         )
 
 
-    # BALANCED
+    # HEALTHY LIFESTYLE
 
-    else:
+    elif goal == "Healthy Lifestyle":
 
         recommendations.append(
             "Maintain a balanced diet."
@@ -176,13 +187,13 @@ def recommend(nutrition, goal):
         )
 
 
-    if calories < 300:
+    if calories < 300 * factor:
 
         if "Very Low Calories" not in issues:
             issues.append("Very Low Calories")
 
         recommendations.append(
-            "Meal calories are very low."
+            f"Calories are quite low for a {meal_type.lower()}."
         )
 
 
@@ -203,6 +214,9 @@ def recommend(nutrition, goal):
 Health Goal:
 {goal}
 
+Meal Type:
+{meal_type}
+
 Nutrition Summary:
 
 Calories: {calories} kcal
@@ -222,9 +236,14 @@ ML Confidence:
 Detected Issues:
 {', '.join(issues) if issues else 'None'}
 
-Give:
 Explain the ML prediction above in simple, easy-to-understand language.
+
+Judge whether the calories are appropriate for a {meal_type}, not for a
+full meal in general — a Breakfast or Snack is expected to have fewer
+calories than Lunch or Dinner.
 """
+
+
     # RETURN RESULTS
 
     return {

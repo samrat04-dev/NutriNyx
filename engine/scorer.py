@@ -1,6 +1,17 @@
 # HEALTH SCORE CALCULATOR
 
-def calculate_score(nutrition):
+# A snack isn't supposed to have the same calories as
+# dinner. This factor scales the "healthy calorie range"
+# up or down depending on which meal it is.
+MEAL_TYPE_FACTOR = {
+    "Breakfast": 0.6,
+    "Lunch": 1.0,
+    "Dinner": 1.0,
+    "Snack": 0.3,
+}
+
+
+def calculate_score(nutrition, meal_type="Lunch"):
 
     score = 100
 
@@ -14,19 +25,21 @@ def calculate_score(nutrition):
     sugar = nutrition["Sugar"]
     sodium = nutrition["Sodium"]
 
+    factor = MEAL_TYPE_FACTOR.get(meal_type, 1.0)
+
 
 # Calories
 
-    if calories < 300:
+    if calories < 300 * factor:
         score -= 15
-        reasons.append("Very low calorie meal.")
+        reasons.append(f"Low calories for a {meal_type.lower()}.")
 
-    elif calories > 900:
+    elif calories > 900 * factor:
         score -= 15
-        reasons.append("Very high calorie meal.")
+        reasons.append(f"High calories for a {meal_type.lower()}.")
 
     else:
-        reasons.append("Calories are within a healthy range.")
+        reasons.append("Calories are within a healthy range for this meal.")
 
 
 # Protein

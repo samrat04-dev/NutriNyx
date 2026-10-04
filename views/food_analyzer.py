@@ -196,18 +196,24 @@ def show_food_analyzer():
         label_visibility="collapsed"
     )
 
-    col_goal, col_servings = st.columns([2, 1])
+    # Health goal now lives in one place only: Settings.
+    # Food Analyzer just reads whatever is set there.
+    goal = st.session_state.get("user_goal", "Healthy Lifestyle")
 
-    with col_goal:
-        goal = st.selectbox(
-            "🎯 Your health goal",
-            [
-                "Balanced",
-                "Weight Loss",
-                "Weight Gain",
-                "Muscle Gain",
-                "Diabetic Friendly"
-            ]
+    st.caption(
+        f"🎯 Using your goal from Settings: **{goal}**. "
+        f"Change it anytime in ⚙️ Settings."
+    )
+
+    col_meal, col_servings = st.columns([2, 1])
+
+    with col_meal:
+        meal_type = st.selectbox(
+            "🍽️ Meal type",
+            ["Breakfast", "Lunch", "Dinner", "Snack"],
+            help="A breakfast or snack is naturally lighter than "
+                 "lunch or dinner — this keeps advice and calorie "
+                 "checks realistic for what you actually ate."
         )
 
     with col_servings:
@@ -345,11 +351,12 @@ def show_food_analyzer():
                     for key, value in nutrition.items()
                 }
 
-                score_result = calculate_score(nutrition)
+                score_result = calculate_score(nutrition, meal_type)
 
                 recommendation_result = recommend(
                     nutrition,
-                    goal
+                    goal,
+                    meal_type
                 )
 
                 ai_response = generate_ai_recommendation(
@@ -389,6 +396,7 @@ def show_food_analyzer():
                 st.session_state["meal_history"].append({
                     "food": ", ".join(found_foods),
                     "servings": servings,
+                    "meal_type": meal_type,
                     "nutrition": nutrition,
                     "score": score_result["score"],
                     "time": datetime.now().strftime("%I:%M %p")

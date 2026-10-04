@@ -1,15 +1,48 @@
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from engine import nutrition
+from styles.theme import PRIMARY, SECONDARY, ACCENT, TEXT
 
 
 def show_nutrition_report():
     # =========================
-    # GET LATEST ANALYSIS
+    # DAILY TOTALS FROM MEAL HISTORY
+    # Sums every meal logged so far instead of only
+    # showing whichever meal was analyzed most recently.
     # =========================
 
-    nutrition = st.session_state.get("nutrition")
-    score_result = st.session_state.get("score_result")
+    meal_history = st.session_state.get("meal_history", [])
+
+    if meal_history:
+
+        nutrition = {
+            "Calories": sum(m["nutrition"]["Calories"] for m in meal_history),
+            "Protein": sum(m["nutrition"]["Protein"] for m in meal_history),
+            "Carbs": sum(m["nutrition"]["Carbs"] for m in meal_history),
+            "Fat": sum(m["nutrition"]["Fat"] for m in meal_history),
+        }
+
+        avg_score = round(
+            sum(m["score"] for m in meal_history) / len(meal_history)
+        )
+
+        if avg_score >= 90:
+            avg_rating = "Excellent"
+        elif avg_score >= 75:
+            avg_rating = "Good"
+        elif avg_score >= 60:
+            avg_rating = "Average"
+        else:
+            avg_rating = "Needs Improvement"
+
+    else:
+
+        nutrition = None
+        avg_score = None
+        avg_rating = None
+
     ai_response = st.session_state.get("ai_response")
     analyzed_food = st.session_state.get("analyzed_food")
     
@@ -141,15 +174,13 @@ and improve your health.
 
     st.subheader("💙 Overall Health Score")
 
-    if score_result:
+    if avg_score is not None:
 
-        score = score_result["score"]
-
-        st.progress(score / 100)
+        st.progress(avg_score / 100)
 
         st.success(
-            f"Your current nutrition health score is {score}/100 — "
-            f"{score_result['rating']}."
+            f"Your average nutrition health score today is "
+            f"{avg_score}/100 — {avg_rating}."
         )
 
     else:
@@ -203,7 +234,7 @@ and improve your health.
                         Protein
                     </div>
                     <div class="report-label">
-                        Analyzed meal
+                        Today's total
                     </div>
                 </div>
                 """,
@@ -222,7 +253,7 @@ and improve your health.
                         Carbohydrates
                     </div>
                     <div class="report-label">
-                        Analyzed meal
+                        Today's total
                     </div>
                 </div>
                 """,
@@ -241,7 +272,7 @@ and improve your health.
                         Fat
                     </div>
                     <div class="report-label">
-                        Analyzed meal
+                        Today's total
                     </div>
                 </div>
                 """,
@@ -261,8 +292,6 @@ and improve your health.
     # =========================
 
     st.subheader("🕐 Meal History")
-
-    meal_history = st.session_state.get("meal_history", [])
 
     if meal_history:
 
@@ -287,6 +316,12 @@ and improve your health.
 
             with row_left:
 
+                meal_type_tag = (
+                    f"{entry['meal_type']} • "
+                    if entry.get("meal_type")
+                    else ""
+                )
+
                 servings_tag = (
                     f" • {entry['servings']:g}x servings"
                     if entry.get("servings", 1) != 1
@@ -296,7 +331,7 @@ and improve your health.
                 st.markdown(
                     f"""
                     <div class="history-card">
-                        <b>{entry['food'].title()}</b>{servings_tag}
+                        {meal_type_tag}<b>{entry['food'].title()}</b>{servings_tag}
                         <br>
                         {entry['nutrition']['Calories']:.0f} kcal
                         • {entry['nutrition']['Protein']:.1f}g protein
@@ -321,6 +356,24 @@ and improve your health.
             "🥗 No meals logged yet. Analyzed foods will show up here."
         )
 
+    if meal_history:
+
+        st.write("")
+
+        st.markdown("##### 📊 Calories Per Meal Today")
+
+        chart_data = pd.DataFrame({
+            "Meal": [
+                f"{i + 1}. {m['food'].title()[:18]}"
+                for i, m in enumerate(meal_history)
+            ],
+            "Calories": [
+                m["nutrition"]["Calories"] for m in meal_history
+            ],
+        }).set_index("Meal")
+
+        st.bar_chart(chart_data, color="#3B82F6")
+
     st.write("")
 
     # =========================
@@ -331,25 +384,43 @@ and improve your health.
 
     if nutrition is not None:
 
-        # Reference values used only to visualize the balance
-        protein_progress = min(nutrition["Protein"] / 70, 1.0)
-        carbs_progress = min(nutrition["Carbs"] / 250, 1.0)
-        fat_progress = min(nutrition["Fat"] / 65, 1.0)
+        # ---- Macro split donut chart (matplotlib, styled to match the app) ----
 
-        st.write(
-            f"💪 Protein — {nutrition['Protein']:.1f} g"
-        )
-        st.progress(protein_progress)
+        macro_labels = ["Protein", "Carbs", "Fat"]
 
-        st.write(
-            f"🍞 Carbohydrates — {nutrition['Carbs']:.1f} g"
-        )
-        st.progress(carbs_progress)
+        macro_values = [
+            nutrition["Protein"],
+            nutrition["Carbs"],
+            nutrition["Fat"],
+        ]
 
-        st.write(
-            f"🥑 Fat — {nutrition['Fat']:.1f} g"
+        macro_colors = [PRIMARY, SECONDARY, ACCENT]
+
+        fig, ax = plt.subplots(figsize=(4, 4))
+
+        # Transparent background so it blends into the white card
+        # instead of showing matplotlib's default white square.
+        fig.patch.set_alpha(0)
+        ax.patch.set_alpha(0)
+
+        wedges, _, autotexts = ax.pie(
+            macro_values,
+            labels=macro_labels,
+            colors=macro_colors,
+            autopct="%1.0f%%",
+            startangle=90,
+            pctdistance=0.8,
+            wedgeprops={"width": 0.4, "edgecolor": "white", "linewidth": 3},
+            textprops={"fontsize": 12, "color": TEXT}
         )
-        st.progress(fat_progress)
+
+        for autotext in autotexts:
+            autotext.set_color("white")
+            autotext.set_fontweight("bold")
+
+        ax.axis("equal")
+
+        st.pyplot(fig, use_container_width=False)
 
     else:
 
@@ -363,20 +434,23 @@ and improve your health.
 
     st.subheader("🤖️ NutriNyx AI Summary")
 
+    st.caption("Based on your most recently analyzed meal.")
+
     if ai_response:
 
         st.markdown(
-            """
+            f"""
             <div class="ai-summary">
                 <div class="ai-title">
                     🤖️ Your Nutrition Summary
+                </div>
+                <div class="ai-text">
+                    {ai_response}
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
-
-        st.markdown(ai_response)
 
     else:
 
@@ -387,19 +461,23 @@ and improve your health.
 
         if recommendations:
 
+            bullet_points = "<br>".join(
+                f"• {recommendation}" for recommendation in recommendations
+            )
+
             st.markdown(
-                """
+                f"""
                 <div class="ai-summary">
                     <div class="ai-title">
                         💡 Personalized Nutrition Suggestions
+                    </div>
+                    <div class="ai-text">
+                        {bullet_points}
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-
-            for recommendation in recommendations:
-                st.markdown(f"• {recommendation}")
 
         else:
 

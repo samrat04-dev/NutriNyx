@@ -3,11 +3,9 @@ import streamlit as st
 from styles.theme import (
     PRIMARY,
     SECONDARY,
-    ACCENT,
     BACKGROUND,
     CARD,
     TEXT,
-    SUBTEXT,
     BORDER,
     RADIUS,
 )
@@ -177,12 +175,26 @@ def load_custom_styles():
 
         /* ==========================================
            MAIN CONTENT TEXT
-           Keeps body text dark on the light page
-           background, independent of viewer theme.
+           !important because Streamlit's own System/
+           Light/Dark menu (top-right) can switch native
+           text to near-white — without this, headers and
+           labels vanish against our light backgrounds
+           whenever a viewer picks Dark mode.
            ========================================== */
 
-        .main p, .main span, .main label, .main li {{
-            color: {TEXT};
+        .main p,
+        .main span,
+        .main label,
+        .main li,
+        .main h1,
+        .main h2,
+        .main h3,
+        .main h4,
+        .main h5,
+        .main h6,
+        .main [data-testid="stCaptionContainer"],
+        .main [data-testid="stMarkdownContainer"] > p {{
+            color: {TEXT} !important;
         }}
 
         /* ==========================================

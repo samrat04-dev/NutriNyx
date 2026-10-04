@@ -38,7 +38,7 @@ df = df.dropna(
         "WeightLoss",
         "MuscleGain",
         "WeightGain",
-        "Balanced"
+        "HealthyLifestyle"
     ]
 )
 
@@ -53,7 +53,7 @@ def train_models():
         "Weight Loss": "WeightLoss",
         "Muscle Gain": "MuscleGain",
         "Weight Gain": "WeightGain",
-        "Balanced": "Balanced"
+        "Healthy Lifestyle": "HealthyLifestyle"
     }
 
     results = {}

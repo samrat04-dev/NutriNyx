@@ -58,7 +58,15 @@ def generate_ai_recommendation(prompt):
             reasoning_effort="low"
         )
 
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+
+        if not content or not content.strip():
+            return (
+                "⚠️ The AI didn't return a response that time. "
+                "Please try again."
+            )
+
+        return content
 
     except Exception as e:
 
